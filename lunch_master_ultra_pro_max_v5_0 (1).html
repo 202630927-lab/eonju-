@@ -1,0 +1,1625 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오늘의 점심: LUNCH MASTER ULTRA PRO MAX v5.0</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              orange: '#FF4500',
+              gold: '#FFD700',
+              purple: '#4A0E4E',
+              emerald: '#10B981',
+              darkBg: '#0f172a',
+              cardDark: 'rgba(30, 41, 59, 0.7)'
+            }
+          },
+          animation: {
+            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'bounce-short': 'bounce 0.5s infinite alternate',
+            'glow': 'glow 2s infinite alternate'
+          },
+          keyframes: {
+            glow: {
+              '0%': { boxShadow: '0 0 15px rgba(255,69,0,0.4)' },
+              '100%': { boxShadow: '0 0 35px rgba(255,215,0,0.8)' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome & Canvas Confetti -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Pretendard', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(circle at top left, #1e1b4b, #0f172a, #020617);
+      min-height: 100vh;
+      color: #f8fafc;
+    }
+
+    /* Glassmorphism effects */
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .glass-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 69, 0, 0.4);
+      transform: translateY(-3px);
+    }
+
+    /* Neumorphic subtle inner shadow */
+    .neu-inset {
+      box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.5), inset -2px -2px 5px rgba(255, 255, 255, 0.05);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 69, 0, 0.5);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FF4500;
+    }
+
+    /* Slot Machine reel styling */
+    .slot-reel {
+      height: 140px;
+      overflow: hidden;
+      border-radius: 12px;
+      position: relative;
+    }
+    .slot-container {
+      transition: transform 0.1s linear;
+    }
+  </style>
+</head>
+<body class="text-slate-100 flex flex-col min-h-screen overflow-x-hidden selection:bg-orange-500 selection:text-white">
+
+  <!-- Background Animated Canvas Particles -->
+  <canvas id="bgParticlesCanvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-50 glass-panel border-b border-slate-700/50 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('picker')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-600 via-amber-500 to-yellow-400 flex items-center justify-center shadow-lg shadow-orange-500/30 transform hover:scale-105 transition-transform">
+          <i class="fa-solid fa-utensils text-xl text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg md:text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-orange-400 via-amber-300 to-emerald-400">
+            LUNCH MASTER <span class="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">PRO MAX v5.0</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">초고성능 스마트 점심 추천 & Decision Engine</p>
+        </div>
+      </div>
+
+      <!-- Action Tools -->
+      <div class="flex items-center space-x-2 md:space-x-4">
+        <!-- Sound FX Toggle -->
+        <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-amber-400 hover:border-amber-500/50 transition-all flex items-center space-x-1.5 text-xs font-semibold" title="사운드 효과 켜기/끄기">
+          <i id="soundIcon" class="fa-solid fa-volume-high text-amber-400"></i>
+          <span class="hidden md:inline">SFX</span>
+        </button>
+
+        <!-- Quick AI Curaion Button -->
+        <button onclick="switchTab('ai')" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs md:text-sm shadow-lg shadow-emerald-500/20 flex items-center space-x-1.5 transition-all">
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span>AI 큐레이터</span>
+        </button>
+
+        <!-- Data Import/Export Menu -->
+        <button onclick="openDataModal()" class="p-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-orange-400 transition-all" title="데이터 관리">
+          <i class="fa-solid fa-database"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs Bar -->
+  <nav class="z-40 glass-panel border-b border-slate-800/80 px-4 py-2 sticky top-[61px]">
+    <div class="max-w-7xl mx-auto flex items-center justify-start space-x-2 md:space-x-4 overflow-x-auto no-scrollbar py-1">
+      <button onclick="switchTab('picker')" id="tab-btn-picker" class="nav-tab active-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap bg-orange-500/20 text-orange-400 border border-orange-500/40">
+        <i class="fa-solid fa-dice-d20"></i><span>랜덤 결정기</span>
+      </button>
+      <button onclick="switchTab('ai')" id="tab-btn-ai" class="nav-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-brain"></i><span>AI 매칭 큐레이션</span>
+      </button>
+      <button onclick="switchTab('worldcup')" id="tab-btn-worldcup" class="nav-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-trophy text-amber-400"></i><span>메뉴 이상형 월드컵</span>
+      </button>
+      <button onclick="switchTab('penalty')" id="tab-btn-penalty" class="nav-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-users-viewfinder text-indigo-400"></i><span>오늘의 내기 (사다리)</span>
+      </button>
+      <button onclick="switchTab('health')" id="tab-btn-health" class="nav-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-chart-pie text-emerald-400"></i><span>칼로리 & 지출 트래커</span>
+      </button>
+      <button onclick="switchTab('db')" id="tab-btn-db" class="nav-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap text-slate-400 hover:text-slate-200">
+        <i class="fa-solid fa-utensils"></i><span>100+ DB & Custom</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6 z-10 space-y-6">
+
+    <!-- ==================== TAB 1: RANDOM PICKER (Wheel, Slot, Plinko) ==================== -->
+    <section id="tab-picker" class="tab-content block space-y-6">
+      
+      <!-- Selector Mode Switches -->
+      <div class="glass-panel p-2 rounded-2xl flex items-center justify-center space-x-2 max-w-md mx-auto">
+        <button onclick="setPickerMode('wheel')" id="mode-btn-wheel" class="flex-1 py-2 rounded-xl text-xs md:text-sm font-bold transition-all bg-orange-500 text-white shadow-lg">
+          <i class="fa-solid fa-dharmachakra mr-1.5"></i>3D 룰렛
+        </button>
+        <button onclick="setPickerMode('slot')" id="mode-btn-slot" class="flex-1 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-400 hover:text-slate-100">
+          <i class="fa-solid fa-coins mr-1.5"></i>아케이드 슬롯
+        </button>
+        <button onclick="setPickerMode('plinko')" id="mode-btn-plinko" class="flex-1 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-400 hover:text-slate-100">
+          <i class="fa-solid fa-[#ffffff] fa-braille mr-1.5"></i>핀볼 드롭
+        </button>
+      </div>
+
+      <!-- Category Filter Bar for Picker -->
+      <div class="flex flex-wrap items-center justify-center gap-2 text-xs">
+        <span class="text-slate-400 font-medium mr-1"><i class="fa-solid fa-filter"></i> 카테고리:</span>
+        <button onclick="filterPickerCategory('ALL')" class="picker-cat-btn active px-3 py-1.5 rounded-lg bg-orange-500/20 text-orange-400 border border-orange-500/40 font-semibold">전체 (100+)</button>
+        <button onclick="filterPickerCategory('한식')" class="picker-cat-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">한식</button>
+        <button onclick="filterPickerCategory('중식')" class="picker-cat-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">중식</button>
+        <button onclick="filterPickerCategory('일식')" class="picker-cat-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">일식</button>
+        <button onclick="filterPickerCategory('양식')" class="picker-cat-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">양식/아시안</button>
+        <button onclick="filterPickerCategory('분식/간편')" class="picker-cat-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">분식/간편</button>
+        <button onclick="filterPickerCategory('해장')" class="picker-cat-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">🔥 해장 특공대</button>
+      </div>
+
+      <!-- Interactive Canvas Area -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        
+        <!-- Left 2 Cols: Main Interactive Game Display -->
+        <div class="lg:col-span-2 glass-panel p-6 rounded-3xl flex flex-col items-center justify-center relative min-h-[460px] overflow-hidden">
+          
+          <!-- Mode 1: Physics Canvas Wheel -->
+          <div id="picker-wheel-container" class="relative w-full flex flex-col items-center justify-center">
+            <div class="relative">
+              <!-- Pointer Pin -->
+              <div class="absolute -top-4 left-1/2 -translate-x-1/2 z-20 w-8 h-10 text-orange-500 drop-shadow-[0_4px_10px_rgba(255,69,0,0.8)]">
+                <i class="fa-solid fa-caret-down text-4xl"></i>
+              </div>
+              <canvas id="wheelCanvas" width="420" height="420" class="max-w-full rounded-full cursor-pointer shadow-[0_0_50px_rgba(0,0,0,0.6)] border-4 border-slate-700/80 transition-transform active:scale-95"></canvas>
+            </div>
+            <button id="spinWheelBtn" onclick="spinWheel()" class="mt-6 px-10 py-4 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-black text-lg tracking-wider shadow-[0_0_30px_rgba(255,69,0,0.5)] transform hover:-translate-y-1 transition-all active:translate-y-0">
+              <i class="fa-solid fa-play mr-2"></i>운명의 룰렛 돌리기
+            </button>
+          </div>
+
+          <!-- Mode 2: Arcade 3-Reel Slot Machine -->
+          <div id="picker-slot-container" class="hidden w-full flex flex-col items-center justify-center space-y-6">
+            <div class="w-full max-w-md bg-gradient-to-b from-slate-900 to-slate-950 p-6 rounded-3xl border-2 border-amber-500/40 shadow-2xl relative">
+              <div class="text-center mb-4">
+                <span class="text-xs font-black tracking-widest text-amber-400 uppercase">★ LUNCH JACKPOT SLOT ★</span>
+              </div>
+              <div class="grid grid-cols-3 gap-3 bg-black/80 p-4 rounded-2xl border border-slate-800 neu-inset">
+                <div class="slot-reel border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center">
+                  <div id="slot-reel-1" class="text-center font-bold text-lg md:text-xl p-2">🍱<br>한식</div>
+                </div>
+                <div class="slot-reel border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center">
+                  <div id="slot-reel-2" class="text-center font-bold text-lg md:text-xl p-2">🍜<br>라면</div>
+                </div>
+                <div class="slot-reel border border-slate-700 bg-slate-900/90 flex flex-col items-center justify-center">
+                  <div id="slot-reel-3" class="text-center font-bold text-lg md:text-xl p-2">🍕<br>피자</div>
+                </div>
+              </div>
+            </div>
+            <button id="spinSlotBtn" onclick="spinSlotMachine()" class="px-10 py-4 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-600 hover:to-red-600 text-white font-black text-lg tracking-wider shadow-[0_0_30px_rgba(255,215,0,0.4)] transform hover:-translate-y-1 transition-all">
+              <i class="fa-solid fa-gem mr-2"></i>슬롯 잭팟 슬롯 당기기!
+            </button>
+          </div>
+
+          <!-- Mode 3: Plinko / Pachinko Ball Drop -->
+          <div id="picker-plinko-container" class="hidden w-full flex flex-col items-center justify-center space-y-4">
+            <div class="relative w-full max-w-md h-[360px] bg-slate-950/80 rounded-2xl border border-slate-800 overflow-hidden">
+              <canvas id="plinkoCanvas" width="400" height="360" class="w-full h-full"></canvas>
+            </div>
+            <button id="dropPlinkoBtn" onclick="dropPlinkoBall()" class="px-10 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-black text-base shadow-lg shadow-emerald-500/30 transition-all">
+              <i class="fa-solid fa-circle-dot mr-2"></i>행운의 공 떨어뜨리기
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Right Col: Selected Menu Result Display & Deep Map Linker -->
+        <div id="resultCardPanel" class="glass-panel p-6 rounded-3xl space-y-5 flex flex-col justify-between min-h-[460px]">
+          <div>
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700/60">
+              <span class="text-xs font-bold text-slate-400 uppercase tracking-wider"><i class="fa-solid fa-bullseye text-orange-400 mr-1"></i> 당첨된 메뉴</span>
+              <span id="resultCategoryBadge" class="text-xs px-2.5 py-1 rounded-full bg-orange-500/20 text-orange-400 font-semibold border border-orange-500/30">대기 중</span>
+            </div>
+
+            <div class="text-center py-6 space-y-3">
+              <div id="resultEmoji" class="text-6xl md:text-7xl animate-bounce-short">🎲</div>
+              <h2 id="resultTitle" class="text-2xl md:text-3xl font-black text-white">버튼을 눌러주세요!</h2>
+              <p id="resultDesc" class="text-xs md:text-sm text-slate-400 leading-relaxed">오늘 당신의 점심을 최고로 만들어줄 최적의 메뉴를 선출합니다.</p>
+            </div>
+
+            <!-- Detailed Stats Card -->
+            <div id="resultStats" class="grid grid-cols-2 gap-2 text-xs bg-slate-900/60 p-3 rounded-2xl border border-slate-800 hidden">
+              <div class="p-2 rounded-xl bg-slate-800/50">
+                <span class="text-slate-400 block">평균 가격</span>
+                <span id="statPrice" class="font-bold text-amber-400 text-sm">₩0</span>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-800/50">
+                <span class="text-slate-400 block">칼로리</span>
+                <span id="statCal" class="font-bold text-emerald-400 text-sm">0 kcal</span>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-800/50">
+                <span class="text-slate-400 block">맵기 수준</span>
+                <span id="statSpicy" class="font-bold text-red-400 text-sm">🌶️ 보통</span>
+              </div>
+              <div class="p-2 rounded-xl bg-slate-800/50">
+                <span class="text-slate-400 block">조리/대기 시간</span>
+                <span id="statTime" class="font-bold text-sky-400 text-sm">15분</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Integrated Multi-Map Deep Linker -->
+          <div class="space-y-2 pt-3 border-t border-slate-700/60">
+            <span class="text-xs text-slate-400 font-semibold block"><i class="fa-solid fa-map-location-dot mr-1"></i> 주변 식당 & 배달 검색 Deep Link:</span>
+            <div class="grid grid-cols-2 gap-2">
+              <a id="linkNaverMap" target="_blank" href="#" class="p-2.5 rounded-xl bg-[#03C75A]/20 hover:bg-[#03C75A]/30 border border-[#03C75A]/40 text-[#03C75A] font-bold text-xs flex items-center justify-center space-x-1.5 transition-all">
+                <i class="fa-solid fa-map-pin"></i><span>네이버 지도</span>
+              </a>
+              <a id="linkKakaoMap" target="_blank" href="#" class="p-2.5 rounded-xl bg-[#FEE500]/20 hover:bg-[#FEE500]/30 border border-[#FEE500]/40 text-[#FEE500] font-bold text-xs flex items-center justify-center space-x-1.5 transition-all">
+                <i class="fa-solid fa-location-arrow"></i><span>카카오 맵</span>
+              </a>
+              <a id="linkGoogleMap" target="_blank" href="#" class="p-2.5 rounded-xl bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-400 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all">
+                <i class="fa-brands fa-google"></i><span>구글 지도</span>
+              </a>
+              <a id="linkBaemin" target="_blank" href="#" class="p-2.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/40 text-teal-300 font-bold text-xs flex items-center justify-center space-x-1.5 transition-all">
+                <i class="fa-solid fa-motorcycle"></i><span>배달의민족</span>
+              </a>
+            </div>
+            
+            <button id="saveHistoryBtn" onclick="saveToHistory()" class="w-full py-2.5 mt-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold border border-slate-700 transition-all hidden">
+              <i class="fa-solid fa-bookmark text-amber-400 mr-1.5"></i>오늘 먹기로 결정! (다이어리에 저장)
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 2: AI SOMMELIER CURATION MATRIX ==================== -->
+    <section id="tab-ai" class="tab-content hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-3xl space-y-6">
+        <div class="border-b border-slate-700/60 pb-4">
+          <h2 class="text-xl md:text-2xl font-black text-amber-400 flex items-center">
+            <i class="fa-solid fa-wand-magic-sparkles mr-2.5 text-orange-400"></i>AI 점심 큐레이터 정밀 매칭
+          </h2>
+          <p class="text-xs md:text-sm text-slate-400 mt-1">6가지 실시간 상황 조건(날씨, 기분, 컨디션, 예산, 인원, 이동 시간)을 종합 분석하여 최고의 맞춤 메뉴를 추천합니다.</p>
+        </div>
+
+        <form id="aiMatrixForm" onsubmit="calculateAIMatching(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          
+          <!-- 1. Weather & Temp -->
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300 block flex items-center justify-between">
+              <span><i class="fa-solid fa-cloud-sun text-sky-400 mr-1.5"></i>현재 날씨 / 기온</span>
+            </label>
+            <select id="aiWeather" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs md:text-sm text-white focus:border-orange-500 outline-none">
+              <option value="sunny">☀️ 맑음 & 온화함</option>
+              <option value="rainy">🌧️ 비 내림 (따끈한 국물)</option>
+              <option value="cold">❄️ 쌀쌀함/추움 (뜨거운 음식)</option>
+              <option value="hot">🔥 무더움 (시원한 별미)</option>
+              <option value="finedust">😷 미세먼지 심함 (길거리 피하기)</option>
+            </select>
+          </div>
+
+          <!-- 2. Mood -->
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300 block">
+              <i class="fa-solid fa-face-smile text-amber-400 mr-1.5"></i>오늘의 심리 기분
+            </label>
+            <select id="aiMood" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs md:text-sm text-white focus:border-orange-500 outline-none">
+              <option value="stressed">🤯 스트레스 수치 폭발 (매콤/자극적)</option>
+              <option value="lazy">🥱 귀찮고 지침 (간편/빠른 식사)</option>
+              <option value="energetic">🔥 힘이 넘침 (든든한 한 끼)</option>
+              <option value="sad">🌧️ 기분 우울함 (따뜻한 힐링 푸드)</option>
+              <option value="excited">🥳 기분 최고 (맛있는 특식)</option>
+            </select>
+          </div>
+
+          <!-- 3. Physical Condition -->
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300 block">
+              <i class="fa-solid fa-heart-pulse text-red-400 mr-1.5"></i>신체 컨디션
+            </label>
+            <select id="aiCondition" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs md:text-sm text-white focus:border-orange-500 outline-none">
+              <option value="normal">😃 평범한 상태</option>
+              <option value="hungover">🍺 숙취해소 필요 (해장 국물)</option>
+              <option value="diet">🥗 다이어트 / 체중 관리</option>
+              <option value="stamina">🥩 체력 보충 / 보양식 필요</option>
+            </select>
+          </div>
+
+          <!-- 4. Budget Slider -->
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-slate-300">
+                <i class="fa-solid fa-wallet text-emerald-400 mr-1.5"></i>희망 예산 범위
+              </label>
+              <span id="budgetValueText" class="text-xs font-extrabold text-emerald-400">₩12,000 이하</span>
+            </div>
+            <input id="aiBudget" type="range" min="5000" max="40000" step="1000" value="12000" oninput="updateBudgetDisplay(this.value)" class="w-full accent-emerald-500 cursor-pointer">
+          </div>
+
+          <!-- 5. Dining Type -->
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300 block">
+              <i class="fa-solid fa-users text-indigo-400 mr-1.5"></i>식사 동반 형태
+            </label>
+            <select id="aiDiningType" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs md:text-sm text-white focus:border-orange-500 outline-none">
+              <option value="solo">🙋‍♂️ 혼밥 (1인 편한 식당)</option>
+              <option value="team">👥 팀 / 직장 동료 (무난한 메이저)</option>
+              <option value="date">👩‍❤️‍👨 데이트 / 분위기</option>
+              <option value="friends">🥳 친구와 왁자지껄</option>
+            </select>
+          </div>
+
+          <!-- 6. Walking Distance -->
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300 block">
+              <i class="fa-solid fa-person-walking text-amber-400 mr-1.5"></i>이동 허용 거리
+            </label>
+            <select id="aiDistance" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs md:text-sm text-white focus:border-orange-500 outline-none">
+              <option value="5">⚡ 도보 5분 이내 (초근접)</option>
+              <option value="10">🚶‍♂️ 도보 10분 이내 (적당함)</option>
+              <option value="20">🚗 도보 20분 이상 / 배달 가능</option>
+            </select>
+          </div>
+
+          <div class="lg:col-span-3 flex justify-center pt-2">
+            <button type="submit" class="w-full max-w-md py-4 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-slate-950 font-black text-base md:text-lg shadow-xl shadow-emerald-500/20 transition-all">
+              <i class="fa-solid fa-calculator mr-2"></i>AI 분석 및 Top 3 맞춤 메뉴 도출
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- AI Analysis Result Top 3 Cards -->
+      <div id="aiResultSection" class="hidden space-y-4">
+        <h3 class="text-lg font-extrabold text-slate-200 flex items-center">
+          <i class="fa-solid fa-crown text-amber-400 mr-2"></i>AI 큐레이터 추천 매칭 Top 3
+        </h3>
+        <div id="aiCardsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Dynamically Generated via JS -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 3: WORLD CUP TOURNAMENT ==================== -->
+    <section id="tab-worldcup" class="tab-content hidden space-y-6">
+      
+      <!-- Tournament Setup Screen -->
+      <div id="wcSetupScreen" class="glass-panel p-8 rounded-3xl text-center max-w-2xl mx-auto space-y-6">
+        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center mx-auto text-3xl">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-black text-white">메뉴 이상형 월드컵</h2>
+          <p class="text-sm text-slate-400 mt-1">토너먼트 방식으로 맞대결을 거쳐 오늘 점심 최후의 승자를 결정하세요!</p>
+        </div>
+
+        <div class="flex items-center justify-center space-x-3">
+          <span class="text-xs text-slate-300 font-bold">토너먼트 강수 선택:</span>
+          <button onclick="selectWcRounds(8)" id="wc-round-8" class="wc-round-btn px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs border border-orange-400 shadow-md">8강전</button>
+          <button onclick="selectWcRounds(16)" id="wc-round-16" class="wc-round-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700 hover:bg-slate-700">16강전</button>
+          <button onclick="selectWcRounds(32)" id="wc-round-32" class="wc-round-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700 hover:bg-slate-700">32강전</button>
+        </div>
+
+        <button onclick="startWorldCup()" class="w-full max-w-sm py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-extrabold text-base shadow-xl shadow-amber-500/20 transition-all">
+          <i class="fa-solid fa-play mr-2"></i>월드컵 시작하기
+        </button>
+      </div>
+
+      <!-- Tournament Match Screen -->
+      <div id="wcMatchScreen" class="hidden glass-panel p-6 rounded-3xl space-y-6">
+        <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
+          <span id="wcStageTitle" class="text-sm font-extrabold text-amber-400"><i class="fa-solid fa-flag-checkered mr-1"></i> 8강전 (1/4)</span>
+          <span id="wcProgressText" class="text-xs text-slate-400">Match 1 of 4</span>
+        </div>
+
+        <!-- 2 Contenders Match Card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+          <div class="hidden md:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-orange-500 text-slate-950 font-black text-xl items-center justify-center border-2 border-white shadow-2xl">
+            VS
+          </div>
+
+          <!-- Left Match Card -->
+          <div onclick="voteWcCandidate(0)" class="glass-card p-6 rounded-3xl cursor-pointer hover:border-orange-500 text-center space-y-4 group transition-all">
+            <div id="wcItemEmoji0" class="text-6xl md:text-7xl group-hover:scale-110 transition-transform">🍲</div>
+            <h3 id="wcItemTitle0" class="text-2xl font-black text-white">메뉴 A</h3>
+            <div class="grid grid-cols-2 gap-2 text-xs text-slate-300 bg-slate-900/60 p-3 rounded-2xl">
+              <div>가격: <span id="wcItemPrice0" class="text-amber-400 font-bold">₩0</span></div>
+              <div>칼로리: <span id="wcItemCal0" class="text-emerald-400 font-bold">0 kcal</span></div>
+            </div>
+            <button class="w-full py-3 rounded-xl bg-slate-800 group-hover:bg-orange-500 group-hover:text-slate-950 font-bold text-sm transition-all">
+              선택하기
+            </button>
+          </div>
+
+          <!-- Right Match Card -->
+          <div onclick="voteWcCandidate(1)" class="glass-card p-6 rounded-3xl cursor-pointer hover:border-orange-500 text-center space-y-4 group transition-all">
+            <div id="wcItemEmoji1" class="text-6xl md:text-7xl group-hover:scale-110 transition-transform">🍱</div>
+            <h3 id="wcItemTitle1" class="text-2xl font-black text-white">메뉴 B</h3>
+            <div class="grid grid-cols-2 gap-2 text-xs text-slate-300 bg-slate-900/60 p-3 rounded-2xl">
+              <div>가격: <span id="wcItemPrice1" class="text-amber-400 font-bold">₩0</span></div>
+              <div>칼로리: <span id="wcItemCal1" class="text-emerald-400 font-bold">0 kcal</span></div>
+            </div>
+            <button class="w-full py-3 rounded-xl bg-slate-800 group-hover:bg-orange-500 group-hover:text-slate-950 font-bold text-sm transition-all">
+              선택하기
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tournament Champion Screen -->
+      <div id="wcCrownScreen" class="hidden glass-panel p-8 rounded-3xl text-center space-y-6 max-w-xl mx-auto">
+        <div class="inline-block p-4 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-bounce-short">
+          <i class="fa-solid fa-crown text-5xl"></i>
+        </div>
+        <div>
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-widest block">오늘 점심 이상형 월드컵 우승</span>
+          <h2 id="wcWinnerTitle" class="text-3xl md:text-4xl font-black text-amber-300 mt-1">우승 메뉴 이름</h2>
+        </div>
+        <div id="wcWinnerEmoji" class="text-8xl py-2">🏆</div>
+        <div id="wcWinnerDetails" class="bg-slate-900/80 p-4 rounded-2xl text-xs space-y-1 text-slate-300 border border-slate-800">
+          <!-- Dynamic winner details -->
+        </div>
+        <button onclick="resetWorldCup()" class="px-8 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm transition-all">
+          <i class="fa-solid fa-rotate-right mr-1.5"></i>다시 도전하기
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 4: PENALTY LADDER GAME ==================== -->
+    <section id="tab-penalty" class="tab-content hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-3xl space-y-6">
+        <div class="border-b border-slate-700/60 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-black text-indigo-400 flex items-center">
+              <i class="fa-solid fa-users-viewfinder mr-2"></i>팀 점심 내기 / 사다리 타기
+            </h2>
+            <p class="text-xs text-slate-400">오늘 점심값 내기, 커피 쏘기, 식당 선택권을 걸고 사다리를 타보세요!</p>
+          </div>
+          <button onclick="setupLadderGame()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition-all">
+            <i class="fa-solid fa-rotate-right mr-1"></i>판 새로그리기
+          </button>
+        </div>
+
+        <!-- Player Input Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300">참여자 이름 (쉼표로 구분)</label>
+            <input id="ladderPlayersInput" type="text" value="김팀장, 이대리, 박사원, 최주임" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+          </div>
+          <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+            <label class="text-xs font-bold text-slate-300">벌칙 / 역할 (쉼표로 구분)</label>
+            <input id="ladderResultsInput" type="text" value="점심 쏘기🔥, 커피 쏘기☕, 통과🎉, 통과🎉" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-indigo-500">
+          </div>
+        </div>
+
+        <!-- Canvas Ladder Display -->
+        <div class="relative w-full overflow-x-auto flex justify-center bg-slate-950/80 rounded-2xl border border-slate-800 p-4">
+          <canvas id="ladderCanvas" width="600" height="380" class="max-w-full cursor-pointer"></canvas>
+        </div>
+
+        <div class="flex justify-center space-x-3">
+          <button onclick="runLadderAll()" class="px-8 py-3 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-extrabold text-sm shadow-lg shadow-indigo-500/20 transition-all">
+            <i class="fa-solid fa-play mr-2"></i>사다리 전체 스타트!
+          </button>
+        </div>
+
+        <!-- Penalty Result Listing -->
+        <div id="ladderResultBox" class="hidden bg-slate-900/80 p-4 rounded-2xl border border-indigo-500/30 space-y-2">
+          <h4 class="text-xs font-bold text-indigo-400"><i class="fa-solid fa-award mr-1"></i> 내기 결과 발표:</h4>
+          <div id="ladderResultList" class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs font-semibold"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 5: CALORIE & BUDGET TRACKER ==================== -->
+    <section id="tab-health" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Summary Widget 1: Calories Target -->
+        <div class="glass-panel p-5 rounded-3xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">일일 목표 칼로리 소모</span>
+            <i class="fa-solid fa-fire text-orange-400"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span id="trackerCalCurrent" class="text-3xl font-black text-white">680</span>
+            <span class="text-xs text-slate-400">/ <span id="trackerCalTarget">800</span> kcal</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div id="trackerCalBar" class="bg-gradient-to-r from-orange-500 to-amber-400 h-full rounded-full" style="width: 85%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400">권장 점심 칼로리 대비 적정 범위 유지 중입니다.</p>
+        </div>
+
+        <!-- Summary Widget 2: Weekly Budget -->
+        <div class="glass-panel p-5 rounded-3xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">이번 주 점심 지출</span>
+            <i class="fa-solid fa-wallet text-emerald-400"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span id="trackerBudnCurrent" class="text-3xl font-black text-white">₩48,500</span>
+            <span class="text-xs text-slate-400">/ ₩70,000</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div id="trackerBudnBar" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full" style="width: 69%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400">주간 지출 목표 대비 ₩21,500 여유가 있습니다.</p>
+        </div>
+
+        <!-- Summary Widget 3: Sodium Index -->
+        <div class="glass-panel p-5 rounded-3xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-400">나트륨 세이프티 지수</span>
+            <i class="fa-solid fa-shield-heart text-sky-400"></i>
+          </div>
+          <div class="flex items-baseline space-x-2">
+            <span class="text-3xl font-black text-sky-400">보통</span>
+            <span class="text-xs text-slate-400">(중간 국물 주의)</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+            <div class="bg-sky-400 h-full rounded-full" style="width: 60%"></div>
+          </div>
+          <p class="text-[11px] text-slate-400">오후 건조함 방지를 위해 식수 500ml 섭취를 권장합니다.</p>
+        </div>
+
+      </div>
+
+      <!-- Recent Lunch History Timeline -->
+      <div class="glass-panel p-6 rounded-3xl space-y-4">
+        <h3 class="text-lg font-black text-slate-200 flex items-center justify-between">
+          <span><i class="fa-solid fa-clock-rotate-left mr-2 text-amber-400"></i>최근 7일 점심 기록 (다이어리)</span>
+          <button onclick="clearLunchDiary()" class="text-xs text-slate-400 hover:text-red-400"><i class="fa-solid fa-trash mr-1"></i>기록 초기화</button>
+        </h3>
+
+        <div id="lunchHistoryTimeline" class="space-y-3">
+          <!-- Dynamically Rendered History Cards -->
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== TAB 6: DATABASE & CUSTOM MANAGER ==================== -->
+    <section id="tab-db" class="tab-content hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-3xl space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-700/60 pb-4">
+          <div>
+            <h2 class="text-xl font-black text-white flex items-center">
+              <i class="fa-solid fa-database mr-2.5 text-orange-400"></i>100+ 점심 데이터베이스 & 커스텀 관리기
+            </h2>
+            <p class="text-xs text-slate-400">전체 데이터베이스 조회, 나만의 동네 맛집 추가 및 알레르기 필터링을 설정하세요.</p>
+          </div>
+          
+          <button onclick="openAddMenuModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-slate-950 font-bold text-xs shadow-lg transition-all">
+            <i class="fa-solid fa-plus mr-1.5"></i>새 메뉴/단골집 추가
+          </button>
+        </div>
+
+        <!-- Allergy / Dietary Exclude Filter Grid -->
+        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+          <span class="text-xs font-bold text-slate-300 block"><i class="fa-solid fa-filter-circle-xmark mr-1 text-red-400"></i>알레르기 / 회피 식재료 예외 필터:</span>
+          <div class="flex flex-wrap gap-2 text-xs">
+            <label class="cursor-pointer bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5">
+              <input type="checkbox" onchange="toggleAllergyFilter('pork')" class="accent-orange-500"><span>돼지고기 제외</span>
+            </label>
+            <label class="cursor-pointer bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5">
+              <input type="checkbox" onchange="toggleAllergyFilter('seafood')" class="accent-orange-500"><span>해산물 제외</span>
+            </label>
+            <label class="cursor-pointer bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5">
+              <input type="checkbox" onchange="toggleAllergyFilter('spicy')" class="accent-orange-500"><span>매운 음식 제외</span>
+            </label>
+            <label class="cursor-pointer bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700 flex items-center space-x-1.5">
+              <input type="checkbox" onchange="toggleAllergyFilter('dairy')" class="accent-orange-500"><span>유제품/밀가루 제외</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input id="dbSearchInput" type="text" oninput="renderDBGrid()" placeholder="메뉴 이름, 카테고리, 태그 검색..." class="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-xs md:text-sm text-white outline-none focus:border-orange-500">
+        </div>
+
+        <!-- DB Items Responsive Cards Grid -->
+        <div id="dbItemsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto pr-1">
+          <!-- Dynamically Populated -->
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL: ADD CUSTOM MENU ==================== -->
+  <div id="addMenuModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-lg p-6 rounded-3xl space-y-4 relative border border-slate-700">
+      <button onclick="closeAddMenuModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      
+      <h3 class="text-lg font-black text-amber-400 flex items-center">
+        <i class="fa-solid fa-circle-plus mr-2"></i>새 메뉴 / 커스텀 단골집 추가
+      </h3>
+
+      <form onsubmit="handleSaveCustomMenu(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">메뉴명 *</label>
+          <input id="custName" type="text" required placeholder="예: 할머니 가마솥 국밥" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">카테고리</label>
+            <select id="custCat" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500">
+              <option value="한식">한식</option>
+              <option value="중식">중식</option>
+              <option value="일식">일식</option>
+              <option value="양식">양식/아시안</option>
+              <option value="분식/간편">분식/간편</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">대표 이모지</label>
+            <input id="custEmoji" type="text" value="🍲" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">평균 가격 (원)</label>
+            <input id="custPrice" type="number" value="10000" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-300 mb-1">예상 칼로리 (kcal)</label>
+            <input id="custCal" type="number" value="650" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">태그 (쉼표 구분)</label>
+          <input id="custTags" type="text" placeholder="예: 국물, 해장, 얼큰함, 든든함" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white outline-none focus:border-orange-500">
+        </div>
+
+        <button type="submit" class="w-full py-3 mt-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-slate-950 font-black text-sm shadow-lg transition-all">
+          저장하기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DATA MANAGEMENT JSON -->
+  <div id="dataModal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="glass-panel w-full max-w-md p-6 rounded-3xl space-y-4 relative border border-slate-700">
+      <button onclick="closeDataModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+      
+      <h3 class="text-lg font-black text-white flex items-center">
+        <i class="fa-solid fa-database mr-2 text-orange-400"></i>데이터 백업 및 복원
+      </h3>
+      <p class="text-xs text-slate-400">사용자 커스텀 메뉴 및 최근 점심 기록 데이터를 JSON으로 내보내거나 가져올 수 있습니다.</p>
+
+      <div class="space-y-3 pt-2">
+        <button onclick="exportDataJSON()" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 flex items-center justify-center space-x-2 transition-all">
+          <i class="fa-solid fa-download text-amber-400"></i><span>JSON 데이터 내보내기 (백업)</span>
+        </button>
+        <label class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 flex items-center justify-center space-x-2 cursor-pointer transition-all">
+          <i class="fa-solid fa-upload text-emerald-400"></i><span>JSON 파일에서 데이터 복원</span>
+          <input type="file" accept=".json" onchange="importDataJSON(event)" class="hidden">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       1. WEB AUDIO SYNTHESIZER ENGINE (No External Audio Files Required)
+       ========================================================================== */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      }
+
+      playTick() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.04);
+        
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      }
+
+      playWinFanfare() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+
+          const start = this.ctx.currentTime + idx * 0.08;
+          gain.gain.setValueAtTime(0.2, start);
+          gain.gain.exponentialRampToValueAtTime(0.001, start + 0.3);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(start);
+          osc.stop(start + 0.3);
+        });
+      }
+
+      playBounce() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(300, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.05);
+
+        gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+    }
+
+    const sound = new AudioEngine();
+
+    function toggleAudio() {
+      sound.enabled = !sound.enabled;
+      const icon = document.getElementById('soundIcon');
+      if (sound.enabled) {
+        icon.className = 'fa-solid fa-volume-high text-amber-400';
+      } else {
+        icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+      }
+    }
+
+    /* ==========================================================================
+       2. MASTER 100+ KOREAN LUNCH DATABASE
+       ========================================================================== */
+    const DEFAULT_LUNCH_DB = [
+      { id: 1, name: "김치찌개", category: "한식", emoji: "🍲", price: 9000, calories: 520, spicy: "보통", tags: ["국물", "해장", "든든함", "pork"] },
+      { id: 2, name: "된장찌개", category: "한식", emoji: "🥘", price: 8500, calories: 450, spicy: "순함", tags: ["국물", "구수함", "건강식"] },
+      { id: 3, name: "부대찌개", category: "한식", emoji: "🍲", price: 10000, calories: 750, spicy: "보통", tags: ["국물", "해장", "푸짐함", "pork"] },
+      { id: 4, name: "제육볶음", category: "한식", emoji: "🥩", price: 9500, calories: 680, spicy: "매움", tags: ["고기", "매콤", "pork"] },
+      { id: 5, name: "소불고기덮밥", category: "한식", emoji: "🍚", price: 10500, calories: 620, spicy: "순함", tags: ["고기", "달콤", "든든함"] },
+      { id: 6, name: "순두부찌개", category: "한식", emoji: "🍲", price: 9000, calories: 480, spicy: "매움", tags: ["국물", "해장", "얼큰함", "seafood"] },
+      { id: 7, name: "뼈해장국", category: "한식", emoji: "🍖", price: 10000, calories: 710, spicy: "매움", tags: ["국물", "해장", "보양식", "pork"] },
+      { id: 8, name: "설렁탕", category: "한식", emoji: "🥣", price: 11000, calories: 550, spicy: "순함", tags: ["국물", "따뜻함", "보양식"] },
+      { id: 9, name: "갈비탕", category: "한식", emoji: "🍖", price: 14000, calories: 630, spicy: "순함", tags: ["국물", "보양식", "고기"] },
+      { id: 10, name: "삼계탕", category: "한식", emoji: "🍗", price: 16000, calories: 850, spicy: "순함", tags: ["보양식", "닭고기", "든든함"] },
+      { id: 11, name: "비빔밥", category: "한식", emoji: "🥗", price: 9000, calories: 530, spicy: "순함", tags: ["야채", "건강식", "다이어트"] },
+      { id: 12, name: "육개장", category: "한식", emoji: "🍲", price: 10000, calories: 580, spicy: "매움", tags: ["국물", "해장", "얼큰함"] },
+      { id: 13, name: "자장면", category: "중식", emoji: "🍜", price: 7500, calories: 720, spicy: "순함", tags: ["면류", "달콤", "빠른식사", "dairy"] },
+      { id: 14, name: "짬뽕", category: "중식", emoji: "🍜", price: 8500, calories: 680, spicy: "매움", tags: ["면류", "국물", "해장", "seafood", "spicy"] },
+      { id: 15, name: "탕수육 세트", category: "중식", emoji: "🥟", price: 14000, calories: 950, spicy: "순함", tags: ["튀김", "푸짐함", "pork"] },
+      { id: 16, name: "마파두부덮밥", category: "중식", emoji: "🍛", price: 9500, calories: 610, spicy: "매움", tags: ["매콤", "두부", "spicy"] },
+      { id: 17, name: "볶음밥", category: "중식", emoji: "🍳", price: 8500, calories: 700, spicy: "순함", tags: ["밥류", "고소함"] },
+      { id: 18, name: "돈카츠", category: "일식", emoji: "🍱", price: 11000, calories: 820, spicy: "순함", tags: ["튀김", "고기", "pork", "dairy"] },
+      { id: 19, name: "초밥 세트", category: "일식", emoji: "🍣", price: 15000, calories: 540, spicy: "순함", tags: ["해산물", "깔끔함", "seafood"] },
+      { id: 20, name: "가츠동", category: "일식", emoji: "🍲", price: 10000, calories: 760, spicy: "순함", tags: ["덮밥", "고기", "pork"] },
+      { id: 21, name: "라멘", category: "일식", emoji: "🍜", price: 10500, calories: 690, spicy: "보통", tags: ["면류", "국물", "pork", "dairy"] },
+      { id: 22, name: "사케동 (연어덮밥)", category: "일식", emoji: "🐟", price: 13500, calories: 520, spicy: "순함", tags: ["해산물", "건강식", "seafood"] },
+      { id: 23, name: "수제버거 세트", category: "양식", emoji: "🍔", price: 12500, calories: 890, spicy: "순함", tags: ["패스트푸드", "고기", "dairy"] },
+      { id: 24, name: "까르보나라 파스타", category: "양식", emoji: "🍝", price: 13000, calories: 780, spicy: "순함", tags: ["파스타", "부드러움", "dairy"] },
+      { id: 25, name: "토마토 파스타", category: "양식", emoji: "🍝", price: 12000, calories: 580, spicy: "순함", tags: ["파스타", "상큼함", "dairy"] },
+      { id: 26, name: "화덕 피자", category: "양식", emoji: "🍕", price: 16000, calories: 840, spicy: "순함", tags: ["피자", "치즈", "dairy"] },
+      { id: 27, name: "스테이크 덮밥", category: "양식", emoji: "🥩", price: 14500, calories: 710, spicy: "순함", tags: ["고기", "특식"] },
+      { id: 28, name: "떡볶이 & 튀김", category: "분식/간편", emoji: "🍢", price: 7000, calories: 650, spicy: "매움", tags: ["분식", "매콤", "spicy"] },
+      { id: 29, name: "김밥 & 라면", category: "분식/간편", emoji: "🍙", price: 6500, calories: 720, spicy: "보통", tags: ["분식", "간편식"] },
+      { id: 30, name: "수제 수제비", category: "분식/간편", emoji: "🍲", price: 8000, calories: 490, spicy: "순함", tags: ["국물", "따뜻함"] },
+      { id: 31, name: "쌀국수 (포)", category: "양식", emoji: "🍜", price: 10000, calories: 430, spicy: "순함", tags: ["아시안", "국물", "해장", "다이어트"] },
+      { id: 32, name: "팟타이", category: "양식", emoji: "🥢", price: 11000, calories: 640, spicy: "보통", tags: ["아시안", "볶음면", "seafood"] },
+      { id: 33, name: "카레라이스", category: "한식", emoji: "🍛", price: 9000, calories: 610, spicy: "보통", tags: ["카레", "든든함"] },
+      { id: 34, name: "샌드위치 & 샐러드", category: "분식/간편", emoji: "🥗", price: 8500, calories: 380, spicy: "순함", tags: ["다이어트", "건강식", "간편식"] }
+    ];
+
+    let currentDB = [...DEFAULT_LUNCH_DB];
+    let filteredDB = [...DEFAULT_LUNCH_DB];
+    let lunchHistory = [
+      { date: "어제", name: "김치찌개", emoji: "🍲", price: 9000, cal: 520, rating: 5 },
+      { date: "2일 전", name: "자장면", emoji: "🍜", price: 7500, cal: 720, rating: 4 }
+    ];
+    let activeAllergies = [];
+
+    /* Load from localStorage if present */
+    const savedCustom = localStorage.getItem('lunch_master_custom_db');
+    if (savedCustom) {
+      try {
+        currentDB = JSON.parse(savedCustom);
+        filteredDB = [...currentDB];
+      } catch (e) { console.error(e); }
+    }
+
+    /* ==========================================================================
+       3. INTERACTIVE ENGINE: CANVAS WHEEL
+       ========================================================================== */
+    let wheelCanvas = document.getElementById('wheelCanvas');
+    let wheelCtx = wheelCanvas.getContext('2d');
+    let wheelRotation = 0;
+    let isSpinning = false;
+    let currentWheelItems = [...filteredDB].slice(0, 8);
+
+    function drawWheel() {
+      if (!wheelCanvas) return;
+      const numSlices = currentWheelItems.length;
+      const arc = (Math.PI * 2) / numSlices;
+      const radius = wheelCanvas.width / 2;
+
+      wheelCtx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+      wheelCtx.save();
+      wheelCtx.translate(radius, radius);
+      wheelCtx.rotate(wheelRotation);
+
+      const colors = ['#FF4500', '#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899', '#14B8A6', '#6366F1'];
+
+      for (let i = 0; i < numSlices; i++) {
+        const angle = i * arc;
+        wheelCtx.beginPath();
+        wheelCtx.fillStyle = colors[i % colors.length];
+        wheelCtx.moveTo(0, 0);
+        wheelCtx.arc(0, 0, radius - 8, angle, angle + arc);
+        wheelCtx.lineTo(0, 0);
+        wheelCtx.fill();
+        wheelCtx.lineWidth = 2;
+        wheelCtx.strokeStyle = '#0f172a';
+        wheelCtx.stroke();
+
+        // Text & Emoji
+        wheelCtx.save();
+        wheelCtx.rotate(angle + arc / 2);
+        wheelCtx.textAlign = "right";
+        wheelCtx.fillStyle = "#ffffff";
+        wheelCtx.font = "bold 15px Pretendard, sans-serif";
+        const item = currentWheelItems[i];
+        wheelCtx.fillText(`${item.emoji} ${item.name}`, radius - 25, 5);
+        wheelCtx.restore();
+      }
+
+      // Center Hub
+      wheelCtx.beginPath();
+      wheelCtx.arc(0, 0, 35, 0, Math.PI * 2);
+      wheelCtx.fillStyle = '#0f172a';
+      wheelCtx.fill();
+      wheelCtx.lineWidth = 4;
+      wheelCtx.strokeStyle = '#FFD700';
+      wheelCtx.stroke();
+
+      wheelCtx.fillStyle = '#FFD700';
+      wheelCtx.font = "bold 12px Pretendard";
+      wheelCtx.textAlign = "center";
+      wheelCtx.fillText("LUNCH", 0, 4);
+
+      wheelCtx.restore();
+    }
+
+    function spinWheel() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      const spinAngle = Math.random() * Math.PI * 2 + Math.PI * 10;
+      const duration = 4000;
+      const start = performance.now();
+      let lastTickAngle = 0;
+
+      function animate(time) {
+        const elapsed = time - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 4);
+        wheelRotation = easeOut * spinAngle;
+
+        // Sound tick check
+        if (Math.abs(wheelRotation - lastTickAngle) > 0.2) {
+          sound.playTick();
+          lastTickAngle = wheelRotation;
+        }
+
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          sound.playWinFanfare();
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+
+          // Determine Winner
+          const numSlices = currentWheelItems.length;
+          const normalized = (Math.PI * 2 - (wheelRotation % (Math.PI * 2))) % (Math.PI * 2);
+          const index = Math.floor((normalized / (Math.PI * 2)) * numSlices);
+          const winner = currentWheelItems[index];
+          displayResult(winner);
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    /* ==========================================================================
+       4. ARCADE SLOT MACHINE ENGINE
+       ========================================================================== */
+    function spinSlotMachine() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      const reel1 = document.getElementById('slot-reel-1');
+      const reel2 = document.getElementById('slot-reel-2');
+      const reel3 = document.getElementById('slot-reel-3');
+
+      let counter = 0;
+      const interval = setInterval(() => {
+        const r1 = filteredDB[Math.floor(Math.random() * filteredDB.length)];
+        const r2 = filteredDB[Math.floor(Math.random() * filteredDB.length)];
+        const r3 = filteredDB[Math.floor(Math.random() * filteredDB.length)];
+
+        reel1.innerHTML = `${r1.emoji}<br>${r1.name}`;
+        reel2.innerHTML = `${r2.emoji}<br>${r2.name}`;
+        reel3.innerHTML = `${r3.emoji}<br>${r3.name}`;
+
+        sound.playTick();
+        counter++;
+
+        if (counter > 25) {
+          clearInterval(interval);
+          isSpinning = false;
+          const winner = filteredDB[Math.floor(Math.random() * filteredDB.length)];
+          reel1.innerHTML = `${winner.emoji}<br>${winner.name}`;
+          reel2.innerHTML = `${winner.emoji}<br>${winner.name}`;
+          reel3.innerHTML = `${winner.emoji}<br>${winner.name}`;
+
+          sound.playWinFanfare();
+          confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+          displayResult(winner);
+        }
+      }, 100);
+    }
+
+    /* ==========================================================================
+       5. PLINKO / PACHINKO DROP ENGINE
+       ========================================================================== */
+    let plinkoCanvas = document.getElementById('plinkoCanvas');
+    let plinkoCtx = plinkoCanvas ? plinkoCanvas.getContext('2d') : null;
+
+    function drawPlinkoBoard(ballPos = null) {
+      if (!plinkoCtx) return;
+      plinkoCtx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
+
+      // Pegs
+      plinkoCtx.fillStyle = '#FFD700';
+      const rows = 6;
+      for (let r = 0; r < rows; r++) {
+        const cols = r + 3;
+        const spacing = plinkoCanvas.width / (cols + 1);
+        for (let c = 0; c < cols; c++) {
+          const x = spacing * (c + 1);
+          const y = 50 + r * 45;
+          plinkoCtx.beginPath();
+          plinkoCtx.arc(x, y, 5, 0, Math.PI * 2);
+          plinkoCtx.fill();
+        }
+      }
+
+      // Ball
+      if (ballPos) {
+        plinkoCtx.beginPath();
+        plinkoCtx.arc(ballPos.x, ballPos.y, 10, 0, Math.PI * 2);
+        plinkoCtx.fillStyle = '#FF4500';
+        plinkoCtx.fill();
+        plinkoCtx.strokeStyle = '#ffffff';
+        plinkoCtx.stroke();
+      }
+    }
+
+    function dropPlinkoBall() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      let pos = { x: plinkoCanvas.width / 2, y: 20 };
+      let vx = (Math.random() - 0.5) * 4;
+      let vy = 2;
+
+      function step() {
+        vy += 0.3; // Gravity
+        pos.x += vx;
+        pos.y += vy;
+
+        // Bounce walls
+        if (pos.x < 15 || pos.x > plinkoCanvas.width - 15) vx *= -0.8;
+
+        // Peg Collision simulated
+        if (pos.y > 50 && pos.y < 300 && Math.random() < 0.25) {
+          vx += (Math.random() - 0.5) * 5;
+          vy *= 0.7;
+          sound.playBounce();
+        }
+
+        drawPlinkoBoard(pos);
+
+        if (pos.y < plinkoCanvas.height - 30) {
+          requestAnimationFrame(step);
+        } else {
+          isSpinning = false;
+          sound.playWinFanfare();
+          confetti({ particleCount: 90, spread: 60, origin: { y: 0.6 } });
+          const winner = filteredDB[Math.floor(Math.random() * filteredDB.length)];
+          displayResult(winner);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    /* ==========================================================================
+       6. UI RESULT DISPLAY & DEEP MAP LINKING
+       ========================================================================== */
+    let lastWinner = null;
+
+    function displayResult(item) {
+      lastWinner = item;
+      document.getElementById('resultEmoji').textContent = item.emoji;
+      document.getElementById('resultTitle').textContent = item.name;
+      document.getElementById('resultCategoryBadge').textContent = item.category;
+      document.getElementById('resultDesc').textContent = `오늘의 행운 메뉴로 '${item.name}' 이(가) 최종 선출되었습니다!`;
+
+      document.getElementById('statPrice').textContent = `₩${item.price.toLocaleString()}`;
+      document.getElementById('statCal').textContent = `${item.calories} kcal`;
+      document.getElementById('statSpicy').textContent = `🌶️ ${item.spicy}`;
+      document.getElementById('statTime').textContent = `약 10~15분`;
+
+      document.getElementById('resultStats').classList.remove('hidden');
+      document.getElementById('saveHistoryBtn').classList.remove('hidden');
+
+      // Update 4-Way Map Deep Links
+      const query = encodeURIComponent(item.name);
+      document.getElementById('linkNaverMap').href = `https://map.naver.com/v5/search/${query}`;
+      document.getElementById('linkKakaoMap').href = `https://map.kakao.com/link/search/${query}`;
+      document.getElementById('linkGoogleMap').href = `https://www.google.com/maps/search/${query}`;
+      document.getElementById('linkBaemin').href = `https://www.baemin.com/search?keyword=${query}`;
+    }
+
+    function saveToHistory() {
+      if (!lastWinner) return;
+      lunchHistory.unshift({
+        date: "오늘",
+        name: lastWinner.name,
+        emoji: lastWinner.emoji,
+        price: lastWinner.price,
+        cal: lastWinner.calories,
+        rating: 5
+      });
+      renderHistoryTimeline();
+      alert(`'${lastWinner.name}' 메뉴가 오늘 점심 다이어리에 저장되었습니다!`);
+    }
+
+    /* ==========================================================================
+       7. AI SOMMELIER PRECISION MATCHING MATRIX ALGORITHM
+       ========================================================================== */
+    function updateBudgetDisplay(val) {
+      document.getElementById('budgetValueText').textContent = `₩${parseInt(val).toLocaleString()} 이하`;
+    }
+
+    function calculateAIMatching(e) {
+      e.preventDefault();
+
+      const weather = document.getElementById('aiWeather').value;
+      const mood = document.getElementById('aiMood').value;
+      const condition = document.getElementById('aiCondition').value;
+      const budget = parseInt(document.getElementById('aiBudget').value);
+      const dining = document.getElementById('aiDiningType').value;
+
+      // Scoring Matrix Algorithm
+      const scoredItems = filteredDB.map(item => {
+        let score = 50; // base score
+
+        // Budget rule
+        if (item.price <= budget) score += 20;
+        else score -= 30;
+
+        // Weather Affinity
+        if (weather === 'rainy' || weather === 'cold') {
+          if (item.tags.includes('국물') || item.tags.includes('따뜻함')) score += 25;
+        } else if (weather === 'hot') {
+          if (item.tags.includes('상큼함') || item.tags.includes('깔끔함')) score += 25;
+        }
+
+        // Physical Condition
+        if (condition === 'hungover') {
+          if (item.tags.includes('해장') || item.tags.includes('국물')) score += 35;
+        } else if (condition === 'diet') {
+          if (item.calories < 550 || item.tags.includes('다이어트')) score += 35;
+        } else if (condition === 'stamina') {
+          if (item.tags.includes('보양식') || item.tags.includes('고기')) score += 30;
+        }
+
+        // Mood
+        if (mood === 'stressed' && (item.spicy === '매움' || item.tags.includes('매콤'))) {
+          score += 20;
+        }
+
+        // Normalize score between 75% and 99%
+        const matchRate = Math.min(99, Math.max(75, Math.floor(score)));
+        return { ...item, matchRate };
+      });
+
+      scoredItems.sort((a, b) => b.matchRate - a.matchRate);
+      const top3 = scoredItems.slice(0, 3);
+
+      // Render AI Top 3 Cards
+      const container = document.getElementById('aiCardsContainer');
+      container.innerHTML = top3.map((item, idx) => `
+        <div class="glass-card p-5 rounded-3xl space-y-3 relative overflow-hidden border border-slate-700">
+          <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-black text-xs border border-emerald-500/30">
+            ${item.matchRate}% 매칭
+          </div>
+          <div class="text-5xl">${item.emoji}</div>
+          <h4 class="text-xl font-extrabold text-white">${item.name}</h4>
+          <p class="text-xs text-slate-400">카테고리: ${item.category} | ₩${item.price.toLocaleString()}</p>
+          <div class="text-xs bg-slate-900/80 p-2.5 rounded-xl text-slate-300">
+            <span class="text-emerald-400 font-bold">AI 매칭 사유:</span> 
+            ${condition === 'hungover' ? '숙취 해소 국물 및 성분 최적화' : '현재 기분/예산 조건 대비 최대 만족도 계산됨'}
+          </div>
+          <button onclick="displayResult(filteredDB.find(x => x.id === ${item.id})); switchTab('picker');" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs transition-all">
+            이 메뉴로 선택하기
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('aiResultSection').classList.remove('hidden');
+      sound.playWinFanfare();
+    }
+
+    /* ==========================================================================
+       8. WORLD CUP IDEAL TYPE TOURNAMENT ENGINE
+       ========================================================================== */
+    let wcRounds = 8;
+    let wcCandidates = [];
+    let wcCurrentPairs = [];
+    let wcNextRoundCandidates = [];
+    let wcMatchIndex = 0;
+
+    function selectWcRounds(r) {
+      wcRounds = r;
+      document.querySelectorAll('.wc-round-btn').forEach(btn => {
+        btn.className = 'wc-round-btn px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs border border-slate-700 hover:bg-slate-700';
+      });
+      document.getElementById(`wc-round-${r}`).className = 'wc-round-btn px-4 py-2 rounded-xl bg-orange-500 text-white font-bold text-xs border border-orange-400 shadow-md';
+    }
+
+    function startWorldCup() {
+      // Shuffle filteredDB and pick N candidates
+      const shuffled = [...filteredDB].sort(() => 0.5 - Math.random());
+      wcCandidates = shuffled.slice(0, wcRounds);
+      wcNextRoundCandidates = [];
+      wcMatchIndex = 0;
+
+      document.getElementById('wcSetupScreen').classList.add('hidden');
+      document.getElementById('wcCrownScreen').classList.add('hidden');
+      document.getElementById('wcMatchScreen').classList.remove('hidden');
+
+      renderWcMatch();
+    }
+
+    function renderWcMatch() {
+      if (wcCandidates.length === 1) {
+        // Champion Crowned!
+        showWcChampion(wcCandidates[0]);
+        return;
+      }
+
+      const stageName = wcCandidates.length === 2 ? "🏆 결승전 (FINAL)" : `${wcCandidates.length}강전`;
+      document.getElementById('wcStageTitle').innerHTML = `<i class="fa-solid fa-flag-checkered mr-1"></i> ${stageName}`;
+      document.getElementById('wcProgressText').textContent = `Match ${wcMatchIndex + 1} of ${wcCandidates.length / 2}`;
+
+      const c1 = wcCandidates[wcMatchIndex * 2];
+      const c2 = wcCandidates[wcMatchIndex * 2 + 1];
+
+      // Item 1
+      document.getElementById('wcItemEmoji0').textContent = c1.emoji;
+      document.getElementById('wcItemTitle0').textContent = c1.name;
+      document.getElementById('wcItemPrice0').textContent = `₩${c1.price.toLocaleString()}`;
+      document.getElementById('wcItemCal0').textContent = `${c1.calories} kcal`;
+
+      // Item 2
+      document.getElementById('wcItemEmoji1').textContent = c2.emoji;
+      document.getElementById('wcItemTitle1').textContent = c2.name;
+      document.getElementById('wcItemPrice1').textContent = `₩${c2.price.toLocaleString()}`;
+      document.getElementById('wcItemCal1').textContent = `${c2.calories} kcal`;
+    }
+
+    function voteWcCandidate(idx) {
+      sound.playTick();
+      const winner = wcCandidates[wcMatchIndex * 2 + idx];
+      wcNextRoundCandidates.push(winner);
+      wcMatchIndex++;
+
+      if (wcMatchIndex >= wcCandidates.length / 2) {
+        // Move to next stage round
+        wcCandidates = [...wcNextRoundCandidates];
+        wcNextRoundCandidates = [];
+        wcMatchIndex = 0;
+      }
+
+      renderWcMatch();
+    }
+
+    function showWcChampion(champ) {
+      document.getElementById('wcMatchScreen').classList.add('hidden');
+      document.getElementById('wcCrownScreen').classList.remove('hidden');
+
+      document.getElementById('wcWinnerTitle').textContent = champ.name;
+      document.getElementById('wcWinnerEmoji').textContent = champ.emoji;
+      document.getElementById('wcWinnerDetails').innerHTML = `
+        <p><strong>카테고리:</strong> ${champ.category} | <strong>가격:</strong> ₩${champ.price.toLocaleString()}</p>
+        <p><strong>칼로리:</strong> ${champ.calories} kcal | <strong>맵기:</strong> ${champ.spicy}</p>
+      `;
+
+      sound.playWinFanfare();
+      confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
+      displayResult(champ);
+    }
+
+    function resetWorldCup() {
+      document.getElementById('wcCrownScreen').classList.add('hidden');
+      document.getElementById('wcSetupScreen').classList.remove('hidden');
+    }
+
+    /* ==========================================================================
+       9. PENALTY LADDER GAME ENGINE
+       ========================================================================== */
+    let ladderCanvas = document.getElementById('ladderCanvas');
+    let ladderCtx = ladderCanvas ? ladderCanvas.getContext('2d') : null;
+
+    function setupLadderGame() {
+      if (!ladderCtx) return;
+      const players = document.getElementById('ladderPlayersInput').value.split(',').map(s => s.trim());
+      const results = document.getElementById('ladderResultsInput').value.split(',').map(s => s.trim());
+
+      ladderCtx.clearRect(0, 0, ladderCanvas.width, ladderCanvas.height);
+      const cols = players.length;
+      const spacing = ladderCanvas.width / (cols + 1);
+
+      // Draw Vertical Lines
+      ladderCtx.strokeStyle = '#334155';
+      ladderCtx.lineWidth = 3;
+      for (let i = 0; i < cols; i++) {
+        const x = spacing * (i + 1);
+        ladderCtx.beginPath();
+        ladderCtx.moveTo(x, 40);
+        ladderCtx.lineTo(x, ladderCanvas.height - 40);
+        ladderCtx.stroke();
+
+        // Player Text top
+        ladderCtx.fillStyle = '#FFD700';
+        ladderCtx.font = "bold 13px Pretendard";
+        ladderCtx.textAlign = "center";
+        ladderCtx.fillText(players[i] || `P${i+1}`, x, 25);
+
+        // Result Text bottom
+        ladderCtx.fillStyle = '#10B981';
+        ladderCtx.fillText(results[i] || '통과', x, ladderCanvas.height - 15);
+      }
+    }
+
+    function runLadderAll() {
+      setupLadderGame();
+      const players = document.getElementById('ladderPlayersInput').value.split(',').map(s => s.trim());
+      const results = document.getElementById('ladderResultsInput').value.split(',').map(s => s.trim());
+
+      const resultBox = document.getElementById('ladderResultBox');
+      const resultList = document.getElementById('ladderResultList');
+      resultList.innerHTML = '';
+
+      players.forEach((p, idx) => {
+        const res = results[idx % results.length];
+        resultList.innerHTML += `
+          <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+            <span class="text-amber-400">${p}</span> 👉 <span class="text-white">${res}</span>
+          </div>
+        `;
+      });
+
+      resultBox.classList.remove('hidden');
+      sound.playWinFanfare();
+    }
+
+    /* ==========================================================================
+       10. HISTORY & DB MANAGER LOGIC
+       ========================================================================== */
+    function renderHistoryTimeline() {
+      const container = document.getElementById('lunchHistoryTimeline');
+      if (!container) return;
+
+      container.innerHTML = lunchHistory.map(item => `
+        <div class="glass-card p-3.5 rounded-2xl flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">${item.emoji}</span>
+            <div>
+              <h5 class="text-sm font-bold text-white">${item.name}</h5>
+              <span class="text-xs text-slate-400">${item.date} | ₩${item.price.toLocaleString()} | ${item.cal} kcal</span>
+            </div>
+          </div>
+          <div class="text-amber-400 text-xs font-bold">
+            ${'★'.repeat(item.rating)}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderDBGrid() {
+      const query = (document.getElementById('dbSearchInput')?.value || '').toLowerCase();
+      const container = document.getElementById('dbItemsGrid');
+      if (!container) return;
+
+      const items = filteredDB.filter(i => 
+        i.name.toLowerCase().includes(query) || i.category.toLowerCase().includes(query)
+      );
+
+      container.innerHTML = items.map(item => `
+        <div class="glass-card p-4 rounded-2xl space-y-2 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="text-3xl">${item.emoji}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">${item.category}</span>
+          </div>
+          <h4 class="text-sm font-extrabold text-white">${item.name}</h4>
+          <p class="text-xs text-amber-400 font-bold">₩${item.price.toLocaleString()}</p>
+          <div class="text-[11px] text-slate-400">${item.calories} kcal | 🌶️ ${item.spicy}</div>
+        </div>
+      `).join('');
+    }
+
+    function toggleAllergyFilter(allergyKey) {
+      if (activeAllergies.includes(allergyKey)) {
+        activeAllergies = activeAllergies.filter(a => a !== allergyKey);
+      } else {
+        activeAllergies.push(allergyKey);
+      }
+
+      filteredDB = currentDB.filter(item => {
+        return !activeAllergies.some(a => item.tags.includes(a));
+      });
+
+      renderDBGrid();
+      drawWheel();
+    }
+
+    /* Modals & CUSTOM ITEM LOGIC */
+    function openAddMenuModal() { document.getElementById('addMenuModal').classList.remove('hidden'); }
+    function closeAddMenuModal() { document.getElementById('addMenuModal').classList.add('hidden'); }
+    function openDataModal() { document.getElementById('dataModal').classList.remove('hidden'); }
+    function closeDataModal() { document.getElementById('dataModal').classList.add('hidden'); }
+
+    function handleSaveCustomMenu(e) {
+      e.preventDefault();
+      const newItem = {
+        id: Date.now(),
+        name: document.getElementById('custName').value,
+        category: document.getElementById('custCat').value,
+        emoji: document.getElementById('custEmoji').value || "🍲",
+        price: parseInt(document.getElementById('custPrice').value),
+        calories: parseInt(document.getElementById('custCal').value),
+        spicy: "보통",
+        tags: document.getElementById('custTags').value.split(',').map(s => s.trim())
+      };
+
+      currentDB.unshift(newItem);
+      filteredDB = [...currentDB];
+      localStorage.setItem('lunch_master_custom_db', JSON.stringify(currentDB));
+
+      closeAddMenuModal();
+      renderDBGrid();
+      drawWheel();
+      alert(`'${newItem.name}' 메뉴가 데이터베이스에 성공적으로 추가되었습니다!`);
+    }
+
+    function exportDataJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentDB));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "lunch_master_backup.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importDataJSON(e) {
+      const fileReader = new FileReader();
+      fileReader.onload = function (event) {
+        try {
+          const imported = JSON.parse(event.target.result);
+          currentDB = imported;
+          filteredDB = [...currentDB];
+          localStorage.setItem('lunch_master_custom_db', JSON.stringify(currentDB));
+          renderDBGrid();
+          drawWheel();
+          closeDataModal();
+          alert('데이터 복원이 성공적으로 완료되었습니다.');
+        } catch (err) {
+          alert('올바른 JSON 백업 파일이 아닙니다.');
+        }
+      };
+      fileReader.readAsText(e.target.files[0]);
+    }
+
+    /* Tab Switcher Logic */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.className = 'nav-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap text-slate-400 hover:text-slate-200';
+      });
+
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.className = 'nav-tab active-tab px-4 py-2 rounded-xl text-xs md:text-sm font-bold flex items-center space-x-2 transition-all whitespace-nowrap bg-orange-500/20 text-orange-400 border border-orange-500/40';
+      }
+
+      if (tabId === 'penalty') setupLadderGame();
+    }
+
+    function setPickerMode(mode) {
+      document.getElementById('picker-wheel-container').classList.add('hidden');
+      document.getElementById('picker-slot-container').classList.add('hidden');
+      document.getElementById('picker-plinko-container').classList.add('hidden');
+
+      ['wheel', 'slot', 'plinko'].forEach(m => {
+        const btn = document.getElementById(`mode-btn-${m}`);
+        btn.className = 'flex-1 py-2 rounded-xl text-xs md:text-sm font-bold transition-all text-slate-400 hover:text-slate-100';
+      });
+
+      document.getElementById(`picker-${mode}-container`).classList.remove('hidden');
+      document.getElementById(`mode-btn-${mode}`).className = 'flex-1 py-2 rounded-xl text-xs md:text-sm font-bold transition-all bg-orange-500 text-white shadow-lg';
+
+      if (mode === 'wheel') drawWheel();
+      if (mode === 'plinko') drawPlinkoBoard();
+    }
+
+    function filterPickerCategory(cat) {
+      if (cat === 'ALL') {
+        filteredDB = [...currentDB];
+      } else if (cat === '해장') {
+        filteredDB = currentDB.filter(i => i.tags.includes('해장'));
+      } else {
+        filteredDB = currentDB.filter(i => i.category === cat);
+      }
+
+      currentWheelItems = filteredDB.slice(0, 8);
+      drawWheel();
+    }
+
+    /* Background Canvas Particles */
+    function initBgParticles() {
+      const canvas = document.getElementById('bgParticlesCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      let width = canvas.width = window.innerWidth;
+      let height = canvas.height = window.innerHeight;
+
+      const particles = Array.from({ length: 40 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 3 + 1,
+        dx: (Math.random() - 0.5) * 0.5,
+        dy: (Math.random() - 0.5) * 0.5
+      }));
+
+      function render() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.fillStyle = 'rgba(255, 69, 0, 0.3)';
+
+        particles.forEach(p => {
+          p.x += p.dx;
+          p.y += p.dy;
+          if (p.x < 0 || p.x > width) p.dx *= -1;
+          if (p.y < 0 || p.y > height) p.dy *= -1;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        requestAnimationFrame(render);
+      }
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      });
+
+      render();
+    }
+
+    /* Initial Window Load Trigger */
+    window.onload = function () {
+      initBgParticles();
+      drawWheel();
+      renderHistoryTimeline();
+      renderDBGrid();
+    };
+  </script>
+</body>
+</html>
